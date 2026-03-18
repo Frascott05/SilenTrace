@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Indagini</h1>
+<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">Nuova Indagine</button>
+
+<div class="row mt-4">
+    {% for inv in investigations %}
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>{{ inv.name }}</h5>
+                <p>ID: {{ inv.id }}</p>
+                <p>Creato: {{ inv.created_at }}</p>
+                <p>Aggiornato: {{ inv.updated_at }}</p>
+                <a href="/investigation/{{ inv.id }}" class="btn btn-info">Apri</a>
+                <a href="/delete/{{ inv.id }}" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal Create -->
+<div class="modal fade" id="createModal">
+  <div class="modal-dialog">
+    <form method="POST" action="/create" enctype="multipart/form-data" class="modal-content">
+      <div class="modal-header"><h5>Nuova Indagine</h5></div>
+      <div class="modal-body">
+        <input class="form-control mb-2" name="name" placeholder="Nome">
+        <input class="form-control mb-2" name="emails" placeholder="Email separate da virgola">
+        <input class="form-control" type="file" name="file">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary">Salva</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
