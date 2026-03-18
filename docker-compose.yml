@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  silentrace:
+    build: .
+    container_name: silentrace
+    ports:
+      - "${PORT}:${PORT}"
+    volumes:
+      - ./data:/home
+    env_file:
+      - .env
+    stdin_open: true   # equivalente di -i
+    tty: true          # equivalente di -t
