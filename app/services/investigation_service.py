@@ -28,3 +28,7 @@ def delete(id):
     inv = Investigation.query.get(id)
     db.session.delete(inv)
     db.session.commit()
+
+def executeAnalisys():
+    #implement here the analisys of the investigation dump via volatility
+    pass

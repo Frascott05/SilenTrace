@@ -13,7 +13,12 @@
                 <p>Creato: {{ inv.created_at }}</p>
                 <p>Aggiornato: {{ inv.updated_at }}</p>
                 <a href="/investigation/{{ inv.id }}" class="btn btn-info">Apri</a>
-                <a href="/delete/{{ inv.id }}" class="btn btn-danger">Delete</a>
+                <button class="btn btn-warning edit-btn" 
+                  data-id="{{ inv.id }}" 
+                  data-name="{{ inv.name }}" 
+                  data-emails="{{ inv.emails }}" 
+                  data-bs-toggle="modal" data-bs-target="#editModal">Modifica</button>
+                <a href="/investigation/delete/{{ inv.id }}" class="btn btn-danger">Delete</a>
             </div>
         </div>
     </div>
@@ -23,12 +28,15 @@
 <!-- Modal Create -->
 <div class="modal fade" id="createModal">
   <div class="modal-dialog">
-    <form method="POST" action="/create" enctype="multipart/form-data" class="modal-content">
-      <div class="modal-header"><h5>Nuova Indagine</h5></div>
+    <form method="POST" action="/investigation/create" enctype="multipart/form-data" class="modal-content">
+      <div class="modal-header">
+        <h5>Nuova Indagine</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
       <div class="modal-body">
         <input class="form-control mb-2" name="name" placeholder="Nome">
         <input class="form-control mb-2" name="emails" placeholder="Email separate da virgola">
-        <input class="form-control" type="file" name="file">
+        <input class="form-control mb-2" type="text" name="filename" placeholder="Nome del file">
       </div>
       <div class="modal-footer">
         <button class="btn btn-primary">Salva</button>
@@ -37,4 +45,35 @@
   </div>
 </div>
 
+<!-- Modal Update -->
+<div class="modal fade" id="editModal">
+  <div class="modal-dialog">
+    <form method="POST" enctype="multipart/form-data" class="modal-content">
+      <div class="modal-header">
+        <h5>Modifica Indagine</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input class="form-control mb-2" name="name">
+        <input class="form-control mb-2" name="emails">
+        <input class="form-control mb-2" type="text" name="filename">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary">Salva</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.edit-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const modal = document.getElementById('editModal');
+    modal.querySelector('form').action = 'investigation/update/' + btn.dataset.id;
+    modal.querySelector('[name="name"]').value = btn.dataset.name;
+    modal.querySelector('[name="emails"]').value = btn.dataset.emails;
+    modal.querySelector('[name="filename"]').value = btn.dataset.filename;
+  });
+});
+</script>
 {% endblock %}

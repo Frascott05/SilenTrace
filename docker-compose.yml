@@ -7,8 +7,10 @@ services:
     ports:
       - "${PORT}:${PORT}"
     volumes:
-      - ./data:/home
+      - ./app:/app/app/
+      - ./dumps:/app/app/static/uploads #sposta i dump nella cartella uploads, così è possibile caricarli anche dopo
     env_file:
       - .env
     stdin_open: true   # equivalente di -i
     tty: true          # equivalente di -t
+

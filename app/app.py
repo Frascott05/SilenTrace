@@ -4,10 +4,22 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+db_path = os.path.join(BASE_DIR, 'db.sqlite3')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-from routes import *
+# 👉 PRIMA modelli
+from models.investigation import Investigation
+
+# 👉 POI routes
+from routes.routes import *
+
+# 👉 POI init DB
+with app.app_context():
+    print("Creating DB...")
+    db.create_all()
+    print("Tables:", db.metadata.tables.keys())
