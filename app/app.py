@@ -10,13 +10,23 @@ db_path = os.path.join(BASE_DIR, 'db.sqlite3')
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{db_path}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "super-secret-key")
+app.config['JWT_EXPIRATION_HOURS'] = int(os.environ.get("JWT_EXPIRATION_HOURS", 24))
+
 db = SQLAlchemy(app)
 
-# 👉 PRIMA modelli
+# MODELS
 from models.investigation import Investigation
+from models.user import User
 
-# 👉 POI routes
-from routes.routes import *
+# BLUEPRINTS
+from routes.main import main_bp
+from routes.investigation import investigation_bp
+from routes.auth import auth_bp
+
+app.register_blueprint(main_bp)
+app.register_blueprint(investigation_bp)
+app.register_blueprint(auth_bp)
 
 # 👉 POI init DB
 with app.app_context():
