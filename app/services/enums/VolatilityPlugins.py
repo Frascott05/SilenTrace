@@ -3,6 +3,7 @@ from enum import Enum
 
 class VolatilityPlugins(Enum):
     PSTREE = "pstree"
+    #PSLIST = "pslist"
     NETSCAN = "netscan"
     HASHDUMP = "hashdump"
     PSXVIEW = "psxview"

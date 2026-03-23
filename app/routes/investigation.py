@@ -121,10 +121,10 @@ def view(user, id):
 
     # Esegue l'analisi e prende il JSON
     try:
-        analysis_json = service.execute_analysis(inv) #TODO IMPLEMENT ASYNC FOR PRODUCTION PURPOSES (CELERY/ASYNC JOBS)
+        analysis_json, hashing = service.execute_analysis(inv) #TODO IMPLEMENT ASYNC FOR PRODUCTION PURPOSES (CELERY/ASYNC JOBS)
     except ValueError as e:
         flash(str(e))
         return redirect(url_for("investigation.list"))
 
     # Passa il JSON direttamente al template
-    return render_template("investigation.html", investigation=inv, analysis=analysis_json)
+    return render_template("investigation.html", investigation=inv, analysis=analysis_json, hashes = hashing)

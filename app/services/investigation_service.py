@@ -9,6 +9,8 @@ from services.volatilityServices.VolatilityBatchRunner import VolatilityBatchRun
 from services.enums.VolatilityPlugins import VolatilityPlugins
 from services.enums.OperativeSystems import OperativeSystems
 
+from utils import hash
+
 # -----------------------------
 # Tutte le investigations
 # -----------------------------
@@ -126,7 +128,7 @@ def execute_analysis(inv, plugins=None):
         raise ValueError("Investigation non trovata")
 
     dump_path = inv.dump_path
-    print(dump_path)
+
     if not dump_path or not os.path.exists(dump_path):
         raise ValueError("Dump file non trovato per questa investigation")
 
@@ -136,7 +138,9 @@ def execute_analysis(inv, plugins=None):
 
     # Inizializza runner Volatility
     runner = VolatilityBatchRunner(current_app.config["VOLATILITY_PATH"],dump_path, plugins, OperativeSystems.DEFAULT)
-    runner.run_all(True)   
+    runner.run_all(True)
+
+    hashing = hash.FileHashCalculator(dump_path).calculate_hashes()
 
     results = runner.get_all_result()
-    return results
+    return results, hashing

@@ -6,6 +6,30 @@
   <h1>Investigation: {{ investigation.name }}</h1>
   <h2 class="mt-4">Analysis Results</h2>
 
+  <div class="card mb-3">
+    <div class="card-header">
+      <h5 class="mb-0">File Hash</h5>
+    </div>
+    <div class="card-body">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Algorithm</th>
+            <th>Hash Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for hash_type, hash_value in hashes.items() %}
+            <tr>
+              <td>{{ hash_type | upper }}</td>
+              <td><code>{{ hash_value }}</code></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- ===== PSTree ===== -->
   {% if analysis.pstree %}
     <h3 class="mt-4">PSTree</h3>
