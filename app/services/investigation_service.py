@@ -1,7 +1,13 @@
+from flask import current_app
+
 from models.investigation import Investigation
 from models.user import User
 from app import db
 import os
+
+from services.volatilityServices.VolatilityBatchRunner import VolatilityBatchRunner
+from services.enums.VolatilityPlugins import VolatilityPlugins
+from services.enums.OperativeSystems import OperativeSystems
 
 # -----------------------------
 # Tutte le investigations
@@ -110,13 +116,27 @@ def get_all_by_user_email(user_email):
 # -----------------------------
 # Placeholder analisi dump TODO
 # -----------------------------
-def execute_analysis(inv_id):
+def execute_analysis(inv, plugins=None):
     """
-    Analizza il dump dell'investigation (da implementare)
+    Analizza il dump dell'investigation e restituisce il risultato JSON
+    inv: investigation
+    plugins: lista di plugin da eseguire, se None usa tutti gli enum disponibili
     """
-    inv = get_by_id(inv_id)
     if not inv:
         raise ValueError("Investigation non trovata")
 
-    # TODO: implementare l'analisi tramite Volatility sul file inv.dump_path
-    pass
+    dump_path = inv.dump_path
+    print(dump_path)
+    if not dump_path or not os.path.exists(dump_path):
+        raise ValueError("Dump file non trovato per questa investigation")
+
+    # Usa tutti i plugin dell'enum se non specificati
+    if plugins is None:
+        plugins = [p.value for p in VolatilityPlugins]
+
+    # Inizializza runner Volatility
+    runner = VolatilityBatchRunner(current_app.config["VOLATILITY_PATH"],dump_path, plugins, OperativeSystems.DEFAULT)
+    runner.run_all(True)   
+
+    results = runner.get_all_result()
+    return results

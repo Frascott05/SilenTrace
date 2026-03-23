@@ -13,6 +13,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "super-secret-key")
 app.config['JWT_EXPIRATION_HOURS'] = int(os.environ.get("JWT_EXPIRATION_HOURS", 24))
 
+app.config["VOLATILITY_PATH"] = os.getenv("VOLATILITY_PATH")
+
 db = SQLAlchemy(app)
 
 # MODELS

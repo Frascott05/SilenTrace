@@ -7,7 +7,7 @@ import os
 investigation_bp = Blueprint("investigation", __name__, url_prefix="/api/investigation")
 
 def get_upload_dir():
-    return os.path.join(current_app.root_path, "dumps")
+    return os.path.join(current_app.root_path, "static/uploads")
 
 # -----------------------------
 # Lista investigations (solo quelle accessibili all'utente)
@@ -32,12 +32,19 @@ def create(user):
     emails_str = request.form.get("emails")
     file = request.form.get("filename")
 
+
     #prova a commentare questa
     if not name or not emails_str:
         flash("Dati mancanti per creare l'investigation")
         return redirect(url_for("investigation.list"))
 
-    path = os.path.join(get_upload_dir(), file)
+
+    if not file:
+        raise ValueError("File dump mancante")
+
+    filename = os.path.basename(file)
+    path = os.path.join(get_upload_dir(), filename)
+    print(path)
 
     try:
         service.create(request.form.to_dict(), path)
@@ -99,7 +106,7 @@ def delete(user, id):
 # -----------------------------
 # Visualizzazione singola investigation
 # -----------------------------
-@investigation_bp.route("details/<int:id>")
+@investigation_bp.route("/details/<int:id>")
 @jwt_required
 def view(user, id):
     inv = service.get_by_id(id)
@@ -112,4 +119,12 @@ def view(user, id):
         flash("Non hai accesso a questa investigation")
         return redirect(url_for("investigation.list"))
 
-    return render_template("investigation.html", investigation=inv)
+    # Esegue l'analisi e prende il JSON
+    try:
+        analysis_json = service.execute_analysis(inv) #TODO IMPLEMENT ASYNC FOR PRODUCTION PURPOSES (CELERY/ASYNC JOBS)
+    except ValueError as e:
+        flash(str(e))
+        return redirect(url_for("investigation.list"))
+
+    # Passa il JSON direttamente al template
+    return render_template("investigation.html", investigation=inv, analysis=analysis_json)

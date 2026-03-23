@@ -26,10 +26,9 @@ class VolatilityPluginRunner:
 
         # Adding OS if specified
         if self.os:
-            cmd.append(f"{self.os}.{self.plugin}")
+            cmd.append(f"{self.os.value}.{self.plugin}")
         else:
             cmd.append(self.plugin)
-
 
 
         # Printing the command to execute (for debug purposes)
