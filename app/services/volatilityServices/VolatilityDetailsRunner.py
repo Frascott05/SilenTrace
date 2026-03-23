@@ -1,4 +1,4 @@
-from VolatilityBatchRunner import VolatilityBatchRunner
+from services.volatilityServices.VolatilityBatchRunner import VolatilityBatchRunner
 
 class VolatilityDetailsRunner(VolatilityBatchRunner):
 

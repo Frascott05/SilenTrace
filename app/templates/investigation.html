@@ -1,4 +1,159 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<h1>Work in progress</h1>
+<div class="container mt-4">
+
+  <h1>Investigation: {{ investigation.name }}</h1>
+  <h2 class="mt-4">Analysis Results</h2>
+
+  <!-- ===== PSTree ===== -->
+  {% if analysis.pstree %}
+    <h3 class="mt-4">PSTree</h3>
+
+    <script id="pstree-data" type="application/json">
+      {{ analysis.pstree | tojson }}
+    </script>
+
+    <div id="pstreeGrid" class="ag-theme-alpine" style="height: 600px; width: 100%;"></div>
+  {% else %}
+    <p>No PSTree results</p>
+  {% endif %}
+
+  <!-- ===== Altri plugin ===== -->
+  <div class="mt-4">
+    {% for plugin, result in analysis.items() %}
+      {% if plugin != 'pstree' %}
+        <div class="card mb-2">
+          <div class="card-header">
+            <button class="btn btn-link fw-bold text-decoration-none" onclick="toggleCard('{{ plugin }}')">
+              {{ plugin | capitalize }}
+            </button>
+          </div>
+          <div class="card-body" id="{{ plugin }}" style="display: none;">
+            {% if result is iterable and result is sequence and result|length > 0 and result[0] is mapping %}
+              <!-- Griglia AG Grid -->
+              <div id="{{ plugin }}Grid" class="ag-theme-alpine" style="height: 400px; width: 100%;"></div>
+              <script type="application/json" id="{{ plugin }}-data">
+                {{ result | tojson }}
+              </script>
+            {% else %}
+              <!-- Output semplice -->
+              <pre class="mb-0">{{ result | tojson(indent=2) }}</pre>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- Script globale per i plugin (senza usare filtro dict inesistente) -->
+<script id="plugin-data" type="application/json">
+{
+{% for key, value in analysis.items() if key != "pstree" %}
+  "{{ key }}": {{ value | tojson }}{% if not loop.last %},{% endif %}
+{% endfor %}
+}
+</script>
+
+<script>
+// Toggle visibilità delle card
+function toggleCard(id) {
+  const el = document.getElementById(id);
+  el.style.display = (el.style.display === "none") ? "block" : "none";
+}
+
+// ===== AG Grid inizializzazione =====
+document.addEventListener("DOMContentLoaded", function () {
+
+  // --- PSTree ---
+  const pstreeEl = document.getElementById("pstreeGrid");
+  if (pstreeEl) {
+    const rawData = JSON.parse(document.getElementById("pstree-data").textContent);
+
+    function transformData(data, level = 0, parentPid = null) {
+      let result = [];
+      data.forEach(node => {
+        const label = `${node.ImageFileName || "unknown"} (${node.PID})`;
+        const newNode = { ...node, _label: label, _level: level, _parent: parentPid };
+        const children = node.__children || [];
+        delete newNode.__children;
+        result.push(newNode);
+        if (children.length > 0) {
+          result = result.concat(transformData(children, level + 1, node.PID));
+        }
+      });
+      return result;
+    }
+
+    const rowData = transformData(rawData);
+    const sample = rowData[0] || {};
+    const columnDefs = [
+      { 
+        field: "_label", 
+        headerName: "Process", 
+        flex: 2, 
+        cellRenderer: params => params.data._level > 0 ? "→ " + params.value : params.value 
+      },
+      ...Object.keys(sample).filter(k => !["_label","_level","_parent"].includes(k))
+        .map(k => ({ field: k, headerName: k, sortable: true, filter: true, resizable: true }))
+    ];
+
+    const gridOptions = { 
+      columnDefs, 
+      rowData, 
+      defaultColDef: { flex: 1, minWidth: 120, sortable: true, filter: true, resizable: true }, 
+      animateRows: true,
+      enableCellTextSelection: true
+    };
+    agGrid.createGrid(pstreeEl, gridOptions);
+  }
+
+  // --- Altri plugin ---
+  const pluginDataEl = document.getElementById("plugin-data");
+  const pluginData = pluginDataEl ? JSON.parse(pluginDataEl.textContent) : {};
+
+  for (const [plugin, result] of Object.entries(pluginData)) {
+    const gridEl = document.getElementById(plugin + "Grid");
+    const dataEl = document.getElementById(plugin + "-data");
+    if (gridEl && dataEl) {
+      const rowData = JSON.parse(dataEl.textContent);
+      if (rowData.length === 0) continue;
+
+      const sample = rowData[0];
+      const columnDefs = Object.keys(sample).map(k => ({
+        field: k,
+        headerName: k,
+        sortable: true,
+        filter: true,
+        resizable: true
+      }));
+
+      const gridOptions = {
+        columnDefs,
+        rowData,
+        defaultColDef: {
+          flex: 1,
+          minWidth: 120,
+          sortable: true,
+          filter: true,
+          resizable: true
+        },
+        animateRows: true,
+        enableCellTextSelection: true
+      };
+
+      agGrid.createGrid(gridEl, gridOptions);
+    }
+  }
+
+});
+</script>
+
+<!-- Bootstrap e AG Grid -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+
 {% endblock %}
