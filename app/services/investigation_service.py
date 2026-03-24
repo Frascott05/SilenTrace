@@ -2,6 +2,7 @@ from flask import current_app
 
 from models.investigation import Investigation
 from models.user import User
+from models.dumps import Dump
 from app import db
 import os
 
@@ -121,6 +122,7 @@ def get_all_by_user_email(user_email):
 def execute_analysis(inv, plugins=None):
     """
     Analizza il dump dell'investigation e restituisce il risultato JSON
+    
     inv: investigation
     plugins: lista di plugin da eseguire, se None usa tutti gli enum disponibili
     """
@@ -132,15 +134,54 @@ def execute_analysis(inv, plugins=None):
     if not dump_path or not os.path.exists(dump_path):
         raise ValueError("Dump file non trovato per questa investigation")
 
-    # Usa tutti i plugin dell'enum se non specificati
+    print("inizio il calcolo dell'hash")
+    # 🔐 1. Calcolo hash
+    hashing = hash.FileHashCalculator(dump_path).calculate_hashes()
+    md5_hash = hashing.get("md5")
+    print(md5_hash)
+
+    if not md5_hash:
+        raise ValueError("Errore nel calcolo MD5")
+
+    # 🔍 2. Lookup nel DB
+    existing_dump = Dump.query.filter_by(md5=md5_hash).first()
+
+    if existing_dump:
+        current_app.logger.info(f"[CACHE HIT] Dump già analizzato: {md5_hash}")
+        return existing_dump.analysis_result, hashing
+
+    current_app.logger.info(f"[CACHE MISS] Nuova analisi per dump: {md5_hash}")
+
+    # ⚙️ 3. Plugin selection
     if plugins is None:
         plugins = [p.value for p in VolatilityPlugins]
 
-    # Inizializza runner Volatility
-    runner = VolatilityBatchRunner(current_app.config["VOLATILITY_PATH"],dump_path, plugins, OperativeSystems.DEFAULT)
+    # 🧠 4. Esegui analisi
+    runner = VolatilityBatchRunner(
+        current_app.config["VOLATILITY_PATH"],
+        dump_path,
+        plugins,
+        OperativeSystems.DEFAULT
+    )
+
     runner.run_all(True)
-
-    hashing = hash.FileHashCalculator(dump_path).calculate_hashes()
-
     results = runner.get_all_result()
+
+    # 💾 5. Salva nel DB
+    try:
+        new_dump = Dump(
+            md5=md5_hash,
+            file_path=dump_path,
+            analysis_result=results
+        )
+
+        db.session.add(new_dump)
+        db.session.commit()
+
+        current_app.logger.info(f"[DB SAVE] Dump salvato: {md5_hash}")
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"[DB ERROR] Errore salvataggio dump: {str(e)}")
+
     return results, hashing

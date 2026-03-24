@@ -20,6 +20,7 @@ db = SQLAlchemy(app)
 # MODELS
 from models.investigation import Investigation
 from models.user import User
+from models.dumps import Dump
 
 # BLUEPRINTS
 from routes.main import main_bp
