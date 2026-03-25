@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  silentrace:
+    build: .
+    container_name: silentrace
+    ports:
+      - "${PORT}:${PORT}"
+    volumes:
+      - ./app:/app/app/
+      - ./${PATH_TO_MOUT}:/app/app/static/uploads #sposta i dump nella cartella uploads, così è possibile caricarli anche dopo
+    env_file:
+      - .env
+    stdin_open: true   # equivalente di -i
+    tty: true          # equivalente di -t
+

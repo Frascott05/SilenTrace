@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Investigations</h1>
+
+<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+  New Investigation
+</button>
+
+<div class="row mt-4">
+  {% for inv in investigations %}
+  <div class="col-md-4">
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5>{{ inv.name }}</h5>
+        <p>ID: {{ inv.id }}</p>
+        <p>Created: {{ inv.created_at }}</p>
+        <p>Updated: {{ inv.updated_at }}</p>
+
+        <a href="/api/investigation/details/{{ inv.id }}" class="btn btn-info">Open</a>
+
+        <button class="btn btn-warning edit-btn"
+          data-id="{{ inv.id }}"
+          data-name="{{ inv.name }}"
+          data-emails="{{ inv.users | map(attribute='email') | join(',') }}"
+          data-filename="{{ inv.dump_file }}"
+          data-bs-toggle="modal"
+          data-bs-target="#editModal">
+          Edit
+        </button>
+
+        <form method="POST" action="/api/investigation/delete/{{ inv.id }}" style="display:inline;">
+          <button type="submit" class="btn btn-danger"
+            onclick="return confirm('Are you sure you want to delete this investigation?');">
+            Delete
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- ===================== -->
+<!-- CREATE MODAL -->
+<!-- ===================== -->
+<div class="modal fade" id="createModal">
+  <div class="modal-dialog">
+    <form method="POST" action="/api/investigation/create" enctype="multipart/form-data" class="modal-content">
+      
+      <div class="modal-header">
+        <h5>New Investigation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <input class="form-control mb-1" name="name" placeholder="Investigation name">
+        <small class="text-muted d-block mb-2">
+          Enter a descriptive name for the investigation.
+        </small>
+
+        <input class="form-control mb-1"
+               name="emails"
+               value="{{ user_email }}"
+               placeholder="Emails separated by comma">
+        <small class="text-muted d-block mb-2">
+          Insert one or more emails separated by comma (example: user1@mail.com,user2@mail.com).
+        </small>
+
+        <input class="form-control mb-1" name="filename" placeholder="Dump file name">
+        <small class="text-muted d-block">
+          Insert only the dump file name (example: memory.vmem). Do NOT include the full path.
+        </small>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary">Save</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<!-- ===================== -->
+<!-- EDIT MODAL -->
+<!-- ===================== -->
+<div class="modal fade" id="editModal">
+  <div class="modal-dialog">
+    <form method="POST" enctype="multipart/form-data" class="modal-content">
+
+      <div class="modal-header">
+        <h5>Edit Investigation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <input class="form-control mb-1" name="name">
+        <small class="text-muted d-block mb-2">
+          Update the investigation name.
+        </small>
+
+        <input class="form-control mb-1" name="emails">
+        <small class="text-muted d-block mb-2">
+          Emails must be separated by comma (example: user1@mail.com,user2@mail.com).
+        </small>
+
+        <input class="form-control mb-1" type="text" name="filename">
+        <small class="text-muted d-block">
+          Insert only the dump file name, not the full path.
+        </small>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary">Save</button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<!-- ===================== -->
+<!-- SCRIPT -->
+<!-- ===================== -->
+<script>
+document.querySelectorAll('.edit-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const modal = document.getElementById('editModal');
+
+    modal.querySelector('form').action =
+      '/api/investigation/update/' + btn.dataset.id;
+
+    modal.querySelector('[name="name"]').value =
+      btn.dataset.name || '';
+
+    modal.querySelector('[name="emails"]').value =
+      btn.dataset.emails || '';
+
+    modal.querySelector('[name="filename"]').value =
+      btn.dataset.filename || '';
+  });
+});
+</script>
+
+{% endblock %}

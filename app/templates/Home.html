@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Silentrace</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin: 0; font-family: 'Segoe UI', sans-serif; overflow-x: hidden; }
+    .hero { position: relative; height: 100vh; width: 100%; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: #111; }
+    #particles-js { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 0; }
+    .hero-content { position: relative; z-index: 1; }
+    .social-icons a { color: #fff; font-size: 1.5rem; margin: 0 10px; transition: 0.3s; }
+    .social-icons a:hover { color: #0d6efd; }
+  </style>
+</head>
+<body>
+
+  <!-- Includi la navbar -->
+  {% include 'navbar.html' %}
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div id="particles-js"></div>
+    <div class="hero-content">
+      <h1 class="display-3 fw-bold">Silentrace</h1>
+      <div class="social-icons mt-4">
+        <a href="#" target="_blank"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+        <a href="#" target="_blank"><i class="fab fa-instagram"></i></a>
+        <a href="#" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+      </div>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script>
+    particlesJS("particles-js", {
+      "particles": {
+        "number": { "value": 80 },
+        "size": { "value": 3 },
+        "move": { "speed": 2 },
+        "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.4, "width": 1 }
+      }
+    });
+  </script>
+</body>
+</html>
