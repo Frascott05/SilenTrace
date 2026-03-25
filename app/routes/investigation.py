@@ -18,7 +18,7 @@ def list(user):
     investigations = service.get_all_by_user_email(user.email)
     #investigations = service.get_all()
     print(investigations)
-    return render_template("index.html", investigations=investigations)
+    return render_template("index.html", investigations=investigations, user_email=user.email)
 
 
 # -----------------------------
