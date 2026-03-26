@@ -3,6 +3,9 @@ from pathlib import Path
 
 class FileHashCalculator:
     def __init__(self, file_path: str):
+        """
+        :param file_path: string containing the file path
+        """
         self.file_path = Path(file_path)
         if not self.file_path.exists():
             raise FileNotFoundError(f"File not found: {file_path}")
@@ -19,7 +22,6 @@ class FileHashCalculator:
                 md5_hash.update(chunk)
                 sha256_hash.update(chunk)
                 
-        print("fine calcolo")
         result = {
             'md5': md5_hash.hexdigest(),
             'sha256': sha256_hash.hexdigest()

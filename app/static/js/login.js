@@ -17,11 +17,11 @@ document.getElementById("loginForm").addEventListener("submit", function(e){
     return res.json();
   })
   .then(data => {
-    alert("Login avvenuto con successo!");
+    alert("Login successfull!");
     window.location.href = "/api/investigation/investigations/";
   })
   .catch(err => {
     console.error(err);
-    alert(err.error || "Errore durante il login");
+    alert(err.error || "Errore during login process");
   });
 });

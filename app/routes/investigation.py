@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask import current_app
 from services import investigation_service as service
-from utils.middelware import jwt_required  # il tuo decoratore
+from utils.middelware import jwt_required
 import os
 
 investigation_bp = Blueprint("investigation", __name__, url_prefix="/api/investigation")
@@ -10,19 +10,22 @@ def get_upload_dir():
     return os.path.join(current_app.root_path, "static/uploads")
 
 # -----------------------------
-# Lista investigations (solo quelle accessibili all'utente)
+# List investigations (DEFAULT: only the ones for the logged user)
 # -----------------------------
 @investigation_bp.route("/investigations/")
 @jwt_required
 def list(user):
     investigations = service.get_all_by_user_email(user.email)
+
+    #if you want to give all the user the possibility to view all the investigation use this instead
     #investigations = service.get_all()
+
     print(investigations)
     return render_template("index.html", investigations=investigations, user_email=user.email)
 
 
 # -----------------------------
-# Creazione investigation
+# Investigation Creation
 # -----------------------------
 @investigation_bp.route("/create", methods=["POST"])
 @jwt_required
@@ -32,15 +35,13 @@ def create(user):
     emails_str = request.form.get("emails")
     file = request.form.get("filename")
 
-
-    #prova a commentare questa
     if not name or not emails_str:
-        flash("Dati mancanti per creare l'investigation")
+        flash("Some required data are missing")
         return redirect(url_for("investigation.list"))
 
 
     if not file:
-        raise ValueError("File dump mancante")
+        raise ValueError("Missing dump file")
 
     filename = os.path.basename(file)
     path = os.path.join(get_upload_dir(), filename)
@@ -48,7 +49,7 @@ def create(user):
 
     try:
         service.create(request.form.to_dict(), path)
-        flash("Investigation creata con successo")
+        flash("Investigation successful created")
     except ValueError as e:
         print("ERRORE CREATE:", e)
         flash(str(e))
@@ -57,74 +58,73 @@ def create(user):
 
 
 # -----------------------------
-# Aggiornamento investigation
+# Investigation Update
 # -----------------------------
 @investigation_bp.route("/update/<int:id>", methods=["POST"])
 @jwt_required
 def update(user, id):
     inv = service.get_by_id(id)
     if not inv:
-        flash("Investigation non trovata")
+        flash("Investigation not found")
         return redirect(url_for("investigation.list"))
 
-    # Controllo accesso
+    # Permits control
     if user.email not in [u.email for u in inv.users]:
-        flash("Non hai accesso per modificare questa investigation")
+        flash("You don't have the right permits to update this investigation")
         return redirect(url_for("investigation.list"))
 
-    # Procedi con l'update
+    #Update process
     name = request.form.get("name")
     file = request.form.get("filename")
     path = os.path.join(get_upload_dir(), file) if file else None
 
     service.update(id, request.form, path)
-    flash("Investigation aggiornata")
+    flash("Investigation updated")
     return redirect(url_for("investigation.list", id=id))
 
 
 # -----------------------------
-# Eliminazione investigation
+# Investigation Delete
 # -----------------------------
 @investigation_bp.route("/delete/<int:id>", methods=["POST"])
 @jwt_required
 def delete(user, id):
     inv = service.get_by_id(id)
     if not inv:
-        flash("Investigation non trovata")
+        flash("Investigation not found")
         return redirect(url_for("investigation.list"))
 
-    # Controllo accesso: solo utenti associati possono cancellare
+    # Access Control
     if user.email not in [u.email for u in inv.users]:
-        flash("Non hai accesso per eliminare questa investigation")
+        flash("You don't have the right permits to delete this investigation")
         return redirect(url_for("investigation.list"))
 
     service.delete(id)
-    flash("Investigation eliminata")
+    flash("Investigation deleted")
     return redirect(url_for("investigation.list"))
 
 
 # -----------------------------
-# Visualizzazione singola investigation
+# Details of a specified investigation
 # -----------------------------
 @investigation_bp.route("/details/<int:id>")
 @jwt_required
 def view(user, id):
     inv = service.get_by_id(id)
     if not inv:
-        flash("Investigation non trovata")
+        flash("Investigation not found")
         return redirect(url_for("investigation.list"))
 
-    # Controllo accesso utente
+    # Access control
     if user.email not in [u.email for u in inv.users]:
-        flash("Non hai accesso a questa investigation")
+        flash("You don't have the right permits to view this investigation")
         return redirect(url_for("investigation.list"))
 
-    # Esegue l'analisi e prende il JSON
+    #Execution of the dump analysis and getting the results as json
     try:
         analysis_json, hashing = service.execute_analysis(inv) #TODO IMPLEMENT ASYNC FOR PRODUCTION PURPOSES (CELERY/ASYNC JOBS)
     except ValueError as e:
         flash(str(e))
         return redirect(url_for("investigation.list"))
 
-    # Passa il JSON direttamente al template
     return render_template("investigation.html", investigation=inv, analysis=analysis_json, hashes = hashing)

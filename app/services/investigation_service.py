@@ -13,45 +13,49 @@ from services.enums.OperativeSystems import OperativeSystems
 from utils import hash
 
 # -----------------------------
-# Tutte le investigations
+# All the investigations
 # -----------------------------
 def get_all():
-    """Restituisce tutte le investigations presenti nel DB"""
+    """
+    :return List of Investigation:  All the investigation in the DB"""
     return Investigation.query.all()
 
 
 # -----------------------------
-# Singola investigation per ID
+# Single investigation found by ID
 # -----------------------------
 def get_by_id(inv_id):
-    """Restituisce una singola investigation per ID"""
+    """
+    :return Investigation: investigation with the given ID
+    """
     return Investigation.query.get(inv_id)
 
 
 # -----------------------------
-# Creazione di una nuova investigation
+# Creation of a new investigation
 # -----------------------------
 def create(data, file_path):
     """
-    data: dict con 'name' e 'emails' (stringa separata da virgola)
-    file_path: path al dump file
+    :param data: Dictionary with 'name' and 'emails'
+    :param file_path: path to dump file
+    :return Investigation: returns the investigation created
     """
     name = data.get("name")
     emails_str = data.get("emails")
 
     if not name or not emails_str:
-        raise ValueError("Dati incompleti per la creazione dell'investigation")
+        raise ValueError("Incomplete data for creating the investigation")
 
-    # Trasforma la stringa in lista di email
+    # Converting email string into a list of emails
     email_list = [email.strip() for email in emails_str.split(",") if email.strip()]
 
 
-    # Trova gli utenti nel DB
+    # Looking for users in DB
     users = User.query.filter(User.email.in_(email_list)).all()
     if not users:
-        raise ValueError("Nessun utente trovato con queste email")
+        raise ValueError("No user found with this email")
 
-    # Crea l'investigation e associa gli utenti
+    # Create the investigation
     inv = Investigation(
         name=name,
         dump_path=file_path,
@@ -64,24 +68,27 @@ def create(data, file_path):
 
 
 # -----------------------------
-# Aggiornamento investigation esistente
+# Updating an existing investigation 
 # -----------------------------
 def update(inv_id, data, file_path=None):
+    """
+    :param inv_id: Investigation ID
+    :param data: Dictionary with 'name' and 'emails'
+    :param file_path: path to dump file (Default None)
+    :return Investigation: returns the updated investigation
+    """
     inv = get_by_id(inv_id)
     if not inv:
-        raise ValueError("Investigation non trovata")
+        raise ValueError("Investigation not found")
 
-    # Aggiorna nome
     inv.name = data.get("name", inv.name)
 
-    # Aggiorna gli utenti se forniti
     emails_str = data.get("emails")
     if emails_str:
         email_list = [email.strip() for email in emails_str.split(",") if email.strip()]
         users = User.query.filter(User.email.in_(email_list)).all()
-        inv.users = users  # aggiorna associazioni many-to-many
+        inv.users = users
 
-    # Aggiorna dump file se fornito
     if file_path:
         inv.dump_path = file_path
 
@@ -90,9 +97,12 @@ def update(inv_id, data, file_path=None):
 
 
 # -----------------------------
-# Eliminazione investigation
+# Delete investigation
 # -----------------------------
 def delete(inv_id):
+    """
+    :param inv_id: investigation id
+    """
     inv = get_by_id(inv_id)
     if not inv:
         raise ValueError("Investigation non trovata")
@@ -102,61 +112,62 @@ def delete(inv_id):
 
 
 # -----------------------------
-# Restituisce tutte le investigations accessibili da un utente
+# All the investigation accessible by user
 # -----------------------------
 def get_all_by_user_email(user_email):
     """
-    Restituisce le investigations a cui l'utente ha accesso
+    :param user_email: the user email to check
+    :return List[Investigation]: with all the users investigation
+    :return []: if user is not provvided
     """
     user = User.query.filter_by(email=user_email).first()
     if not user:
         return []
 
-    # SQLAlchemy gestisce la relazione many-to-many
     return user.investigations
 
 
 # -----------------------------
-# Placeholder analisi dump TODO
+# Dump Analysis
 # -----------------------------
 def execute_analysis(inv, plugins=None):
     """
-    Analizza il dump dell'investigation e restituisce il risultato JSON
+    Analyze the dump and gives the analysis result as a JSON
     
-    inv: investigation
-    plugins: lista di plugin da eseguire, se None usa tutti gli enum disponibili
+    :param inv: investigation
+    :param plugins: list of plugins to execute, if None it uses all the pre-loaded plugins
     """
     if not inv:
-        raise ValueError("Investigation non trovata")
+        raise ValueError("Investigation not found")
 
     dump_path = inv.dump_path
 
     if not dump_path or not os.path.exists(dump_path):
-        raise ValueError("Dump file non trovato per questa investigation")
+        raise ValueError("Dump file not found for this investigation")
 
-    print("inizio il calcolo dell'hash")
-    # 🔐 1. Calcolo hash
+    print("Calculating hash")
+    # 🔐 1. Calculating Hash
     hashing = hash.FileHashCalculator(dump_path).calculate_hashes()
     md5_hash = hashing.get("md5")
     print(md5_hash)
 
     if not md5_hash:
-        raise ValueError("Errore nel calcolo MD5")
+        raise ValueError("Errore in MD5 calculus")
 
-    # 🔍 2. Lookup nel DB
+    # 🔍 2. Lookup in DB
     existing_dump = Dump.query.filter_by(md5=md5_hash).first()
 
     if existing_dump:
-        current_app.logger.info(f"[CACHE HIT] Dump già analizzato: {md5_hash}")
+        current_app.logger.info(f"[CACHE HIT] Dump already analyzed: {md5_hash}")
         return existing_dump.analysis_result, hashing
 
-    current_app.logger.info(f"[CACHE MISS] Nuova analisi per dump: {md5_hash}")
+    current_app.logger.info(f"[CACHE MISS] New Dump: {md5_hash}")
 
     # ⚙️ 3. Plugin selection
     if plugins is None:
         plugins = [p.value for p in VolatilityPlugins]
 
-    # 🧠 4. Esegui analisi
+    # 🧠 4. Execution
     runner = VolatilityBatchRunner(
         current_app.config["VOLATILITY_PATH"],
         dump_path,
@@ -167,7 +178,7 @@ def execute_analysis(inv, plugins=None):
     runner.run_all(True)
     results = runner.get_all_result()
 
-    # 💾 5. Salva nel DB
+    # 💾 5. Save into DB
     try:
         new_dump = Dump(
             md5=md5_hash,
@@ -178,10 +189,10 @@ def execute_analysis(inv, plugins=None):
         db.session.add(new_dump)
         db.session.commit()
 
-        current_app.logger.info(f"[DB SAVE] Dump salvato: {md5_hash}")
+        current_app.logger.info(f"[DB SAVE] Dump saved: {md5_hash}")
 
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"[DB ERROR] Errore salvataggio dump: {str(e)}")
+        current_app.logger.error(f"[DB ERROR] Error while storing dump: {str(e)}")
 
     return results, hashing

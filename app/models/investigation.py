@@ -19,7 +19,7 @@ class Investigation(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # relazione con utenti
+    #relationship with user table
     users = db.relationship(
         "User",
         secondary=investigation_users,

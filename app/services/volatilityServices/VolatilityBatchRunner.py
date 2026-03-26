@@ -19,11 +19,13 @@ class VolatilityBatchRunner:
         self.plugins = plugins
         self.os = os
         self.results: Dict[str, Optional[dict]] = {}
-        self._lock = threading.Lock()  # per thread safety
+        self._lock = threading.Lock()  # for thread safety
 
     def _run_single_plugin(self, plugin: str, json: bool) -> dict:
         """
-        Esegue un singolo plugin
+        Execute a single plugin
+
+        :return result: returns the result of the plugin 
         """
         runner = VolatilityPluginRunner(
             self.volatility_path,
@@ -60,19 +62,20 @@ class VolatilityBatchRunner:
     def get_result(self, plugin: str) -> Optional[dict]:
         """
         Don't call before running all the plugins.
-        Returns the result of a specific plugin
+
+        :return Optional[dict]: the result of a specific plugin
         """
         return self.results.get(plugin)
     
     def get_all_result(self) -> Dict[str, Optional[dict]]:
         """
-        Returns all plugin results
+        :return Dict[str, Optional[dict]]: all plugin results
         """
         return self.results
     
     def get_successful_results(self) -> Dict[str, dict]:
         """
-        Returns only successful plugin results
+        :return Dict[str, dict]: only successful plugin results
         """
         return {
             k: v for k, v in self.results.items()
@@ -81,7 +84,7 @@ class VolatilityBatchRunner:
 
     def get_failed_plugins(self) -> List[str]:
         """
-        Returns plugins that failed
+        :return List[str]: plugins that failed
         """
         return [
             k for k, v in self.results.items()
@@ -117,9 +120,9 @@ if __name__ == "__main__":
 
 if __name__ == "__main__":
     # Example of use
-    volatility_script = "/opt/volatility3/vol.py"  # percorso a vol.py
-    memory_dump = "dumps/Snapshot1.vmem"           # percorso al dump di memoria
-    plugin_name = ["pstree", "netscan", "hashdump", "psxview"]  # plugin da eseguire
+    volatility_script = "/opt/volatility3/vol.py" 
+    memory_dump = "dumps/Snapshot1.vmem"           
+    plugin_name = ["pstree", "netscan", "hashdump", "psxview"]  
 
     runner = VolatilityBatchRunner(volatility_script, memory_dump, plugin_name, os="windows")
     result = runner.run_all(True)

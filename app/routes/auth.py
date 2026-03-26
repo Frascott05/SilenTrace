@@ -9,10 +9,10 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 def register():
     data = request.json 
     if not data.get("email") or not data.get("password") or not data.get("username"):
-        return {"error": "Dati mancanti"}, 400
+        return {"error": "Missing field requirements"}, 400
 
     if User.query.filter_by(email=data["email"]).first():
-        return {"error": "Email già registrata"}, 400
+        return {"error": "Email Already Registered"}, 400
 
     user = User(username=data["username"], email=data["email"])
     user.set_password(data["password"])
@@ -22,7 +22,7 @@ def register():
 
     token = generate_token(user)
 
-    resp = make_response(jsonify({"message": "Utente registrato"}))
+    resp = make_response(jsonify({"message": "User Registred"}))
     resp.set_cookie("jwt", token, httponly=True, samesite="Lax")
     return resp
 
@@ -34,11 +34,11 @@ def login():
     user = User.query.filter_by(email=data["email"]).first()
 
     if not user or not user.check_password(data["password"]):
-        return jsonify({"error": "Credenziali non valide"}), 401
+        return jsonify({"error": "Invalid Credentials"}), 401
 
     token = generate_token(user)
 
-    resp = make_response(jsonify({"message": "Utente registrato"}))
+    resp = make_response(jsonify({"message": "Correct Login"}))
     resp.set_cookie("jwt", token, httponly=True, samesite="Lax")
     return resp
 
