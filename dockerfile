@@ -12,25 +12,24 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     && apt-get clean
 
-# Imposta directory
+# Setting the working directory
 WORKDIR /app
 
-# Clona Volatility
+# Clone Volatility
 RUN git clone https://github.com/Frascott05/volatility3 /opt/volatility3
 
-# Copia requirements
+# requirements copy
 COPY requirements.txt .
 
-# Installa dipendenze
+# Install dependeces
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 
-# Copia il progetto Flask
+# Copy flask project
 COPY . .
 
-# Espone porta Flask
+# Expose Flask port
 EXPOSE 5000
 
-# Avvio app
-CMD ["/bin/bash"]
-#CMD ["flask", "run"]
+#CMD ["/bin/bash"]
+CMD ["flask", "run"]

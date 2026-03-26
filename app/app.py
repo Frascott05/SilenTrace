@@ -35,4 +35,9 @@ app.register_blueprint(auth_bp)
 with app.app_context():
     print("Creating DB...")
     db.create_all()
+    
+    print("Clearing Dump table...")
+    db.session.query(Dump).delete()
+    db.session.commit()
+
     print("Tables:", db.metadata.tables.keys())
