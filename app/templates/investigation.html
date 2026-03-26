@@ -43,7 +43,7 @@
     <p>No PSTree results</p>
   {% endif %}
 
-  <!-- ===== Altri plugin ===== -->
+  <!-- ===== Other plugins ===== -->
   <div class="mt-4">
     {% for plugin, result in analysis.items() %}
       {% if plugin != 'pstree' %}
@@ -55,13 +55,13 @@
           </div>
           <div class="card-body" id="{{ plugin }}" style="display: none;">
             {% if result is iterable and result is sequence and result|length > 0 and result[0] is mapping %}
-              <!-- Griglia AG Grid -->
+              <!-- AG Grid -->
               <div id="{{ plugin }}Grid" class="ag-theme-alpine" style="height: 400px; width: 100%;"></div>
               <script type="application/json" id="{{ plugin }}-data">
                 {{ result | tojson }}
               </script>
             {% else %}
-              <!-- Output semplice -->
+              <!-- Simple output -->
               <pre class="mb-0">{{ result | tojson(indent=2) }}</pre>
             {% endif %}
           </div>
@@ -72,7 +72,7 @@
 
 </div>
 
-<!-- Script globale per i plugin (senza usare filtro dict inesistente) -->
+<!-- Global script for plugins -->
 <script id="plugin-data" type="application/json">
 {
 {% for key, value in analysis.items() if key != "pstree" %}
@@ -82,13 +82,13 @@
 </script>
 
 <script>
-// Toggle visibilità delle card
+
 function toggleCard(id) {
   const el = document.getElementById(id);
   el.style.display = (el.style.display === "none") ? "block" : "none";
 }
 
-// ===== AG Grid inizializzazione =====
+// ===== AG Grid initialization =====
 document.addEventListener("DOMContentLoaded", function () {
 
   // --- PSTree ---
@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
     agGrid.createGrid(pstreeEl, gridOptions);
   }
 
-  // --- Altri plugin ---
+  // --- Other plugins ---
   const pluginDataEl = document.getElementById("plugin-data");
   const pluginData = pluginDataEl ? JSON.parse(pluginDataEl.textContent) : {};
 
@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-<!-- Bootstrap e AG Grid -->
+<!-- Bootstrap and AG Grid -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
