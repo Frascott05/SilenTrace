@@ -1,4 +1,5 @@
 # SilentTrace
+![SilentTrace Logo](DocumentationLogo.jpeg)
 
 SilentTrace is a **Flask-based memory forensics web application** designed to analyze memory dumps using **Volatility 3**.  
 It provides a simple UI to manage investigations and execute analysis plugins on uploaded memory dumps.
@@ -265,6 +266,52 @@ Since the folder is mounted as a Docker volume:
 docker cp file.vmem silentrace:/app/app/static/uploads/
 ```
 
+
+---
+
+## Admin Panel Documentation
+
+### Overview
+
+This admin panel allows executing raw SQL queries directly against the application database. It is implemented as a Flask blueprint:
+
+- **Route:** `/api/admin`
+- **Access:** Protected by JWT authentication.
+
+### Important Note
+
+By default, the access control code is **commented out**, so **every registered user can access the admin panel**. This is intentional for first-time setup.
+
+---
+
+### Initial Setup Steps
+
+1. **Create the first user** through the standard registration process.
+2. **Access the admin panel:**
+    
+```bash
+    http://<IP>:<PORT>/api/admin
+```
+    
+3. **Promote the first user to admin:**  
+    Execute a SQL query to update the user record, for example:
+    
+```SQL
+    UPDATE users SET is_admin = TRUE WHERE email = 'first_user@example.com';
+```
+    
+4. **Enable admin-only access:**
+    
+    - Open the file `admin.py`.
+    - Uncomment the following lines to restrict access:
+    
+```python
+    if not user or not user.is_admin:  
+        flash("Access denied: only admins can access this panel", "danger")  
+        return redirect(url_for("Login.html"))
+```
+    
+5. **Restart the application container** to apply the changes.
 
 ---
 

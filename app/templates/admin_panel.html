@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+</head>
+<body>
+
+<!-- Includes Navbar -->
+{% include 'navbar.html' %}
+
+<h2>Admin Panel</h2>
+
+<form method="POST">
+    <textarea name="query" rows="5" cols="60" placeholder="Enter SQL query here"></textarea><br>
+    <button type="submit">Execute Query</button>
+</form>
+
+{% if error %}
+    <p style="color:red">{{ error }}</p>
+{% endif %}
+
+{% if result %}
+    {% if result.returns_rows %}
+    <table border="1">
+        <tr>
+            {% for col in result.keys() %}
+                <th>{{ col }}</th>
+            {% endfor %}
+        </tr>
+        {% for row in result.fetchall() %}
+            <tr>
+                {% for val in row %}
+                    <td>{{ val }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <p>Query executed successfully, no results to display.</p>
+    {% endif %}
+{% endif %}
+</body>
+</html>
