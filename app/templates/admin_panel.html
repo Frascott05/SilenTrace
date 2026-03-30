@@ -11,8 +11,8 @@
 <h2>Admin Panel</h2>
 
 <form method="POST">
-    <textarea name="query" rows="5" cols="60" placeholder="Inserisci query SQL qui"></textarea><br>
-    <button type="submit">Esegui Query</button>
+    <textarea name="query" rows="5" cols="60" placeholder="Enter SQL query here"></textarea><br>
+    <button type="submit">Execute Query</button>
 </form>
 
 {% if error %}
@@ -36,7 +36,7 @@
         {% endfor %}
     </table>
     {% else %}
-        <p>Query eseguita con successo, nessun risultato da mostrare.</p>
+        <p>Query executed successfully, no results to display.</p>
     {% endif %}
 {% endif %}
 </body>
