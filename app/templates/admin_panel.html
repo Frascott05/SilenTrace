@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
+{% block content %}
 <head>
     <title>Admin Panel</title>
 </head>
 <body>
-
-<!-- Includes Navbar -->
-{% include 'navbar.html' %}
 
 <h2>Admin Panel</h2>
 
@@ -40,4 +37,5 @@
     {% endif %}
 {% endif %}
 </body>
-</html>
+
+{% endblock %}
