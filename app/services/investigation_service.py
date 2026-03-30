@@ -175,6 +175,9 @@ def execute_analysis(inv, plugins=None):
         OperativeSystems.DEFAULT
     )
 
+    #this is a warmup to avoid the first plugin to crash for finding debug sybols
+    warmup = runner._run_single_plugin("info", json=False)
+
     runner.run_all(True)
     results = runner.get_all_result()
 
