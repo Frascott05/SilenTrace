@@ -18,11 +18,11 @@ document.getElementById("registerForm").addEventListener("submit", function(e){
     return res.json();
   })
   .then(data => {
-    alert("Registration successfull!");
+    alert("Registration successful!");
     window.location.href = "/api/investigation/investigations/";
   })
   .catch(err => {
     console.error(err);
-    alert(err.error || "Error durin registration process");
+    alert(err.error || "Error during registration process");
   });
 });

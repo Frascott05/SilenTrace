@@ -22,6 +22,6 @@ document.getElementById("loginForm").addEventListener("submit", function(e){
   })
   .catch(err => {
     console.error(err);
-    alert(err.error || "Errore during login process");
+    alert(err.error || "Error during login process");
   });
 });
