@@ -3,10 +3,10 @@ from enum import Enum
 
 class VolatilityPlugins(Enum):
     PSTREE = "pstree"
-    #PSLIST = "pslist"
+    PSLIST = "pslist"
     NETSCAN = "netscan"
     HASHDUMP = "hashdump"
-    PSXVIEW = "psxview"
+    #PSXVIEW = "psxview"
 
     @classmethod
     def list(cls):
