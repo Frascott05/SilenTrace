@@ -1,5 +1,5 @@
 # SilentTrace
-![SilentTrace Logo](DocumentationLogo.jpg)
+![SilentTrace Logo](DocumentationLogo.jpeg)
 
 SilentTrace is a **Flask-based memory forensics web application** designed to analyze memory dumps using **Volatility 3**.  
 It provides a simple UI to manage investigations and execute analysis plugins on uploaded memory dumps.
