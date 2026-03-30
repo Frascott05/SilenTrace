@@ -17,7 +17,7 @@ def admin_panel(user):
     #test@test pwd: test as default admin user
     if not user or not user.is_admin:
         flash("Accesso negato: solo admin", "danger")
-        return redirect(url_for("main.index"))
+        return redirect(url_for("Login.html"))
 
     result = None
     error = None
