@@ -73,7 +73,7 @@
 
 <script>
 $(document).ready(function() {
-    // Inizializza DataTable con tutte le funzionalità richieste
+    
     var table = $('#resultTable').DataTable({
         dom: 'Bfrtip',
         responsive: true,
@@ -84,8 +84,7 @@ $(document).ready(function() {
         ordering: true,
         buttons: ['copy', 'csv', 'excel'],
         columnDefs: [
-            { targets: '_all', className: 'dt-head-center dt-body-center' } // centrare contenuto
-            // puoi nascondere colonne specifiche qui: { targets: [3,4], visible: false }
+            { targets: '_all', className: 'dt-head-center dt-body-center' }
         ]
     });
 
