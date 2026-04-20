@@ -1,5 +1,0 @@
-fastapi
-uvicorn
-pydantic
-pydantic-settings
-volatility3
