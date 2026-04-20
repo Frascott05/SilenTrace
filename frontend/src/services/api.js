@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://0.0.0.0:9000"
+  baseURL: "http://localhost:9000"
 });
 
 export const runPlugins = (data) => API.post("/run", data);
