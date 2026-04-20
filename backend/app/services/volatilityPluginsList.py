@@ -107,18 +107,11 @@ class VolatilityPluginList:
                 })
 
         if os_name == "windows":
-            result.append({
-                "name": "windows.registry.hashdump.Hashdump",
-                "module": "volatility3.windows.registry.hashdump",
-                "description": "dump of all the hashed passwords",
-                "class":"sium"
-            })
     
             result.append({
                 "name": "windows.registry.shutdown.Shutdown",
                 "module": "volatility3.windows.shutdown.Shutdown",
-                "description": "Shutdown registry log",
-                "class":"sium"
+                "description": "Shutdown registry log"
             })
 
         return result
