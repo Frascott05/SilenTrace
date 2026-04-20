@@ -1,0 +1,12 @@
+@mui/material
+@mui/icons-material
+@mui/x-data-grid
+react-data-grid
+react-router-dom
+reactflow
+axios
+@emotion/react
+@emotion/styled
+dexie
+lucide-react
+recharts
