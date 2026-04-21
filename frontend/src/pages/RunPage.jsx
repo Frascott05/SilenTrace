@@ -11,7 +11,8 @@ import {
   InputLabel,
   OutlinedInput,
   Checkbox,
-  ListItemText
+  ListItemText,
+  Box
 } from "@mui/material";
 
 import { DataGrid } from "@mui/x-data-grid";
@@ -40,10 +41,8 @@ export default function RunPage() {
   const normalizePlugin = (fullName) => {
     const parts = fullName.split(".");
     if (parts.length < 3) return fullName;
-
     parts.shift();
     parts.pop();
-
     return parts.join(".");
   };
 
@@ -117,75 +116,88 @@ export default function RunPage() {
     return { rows, columns };
   };
 
-  return (
-    <Grid container spacing={3} sx={{ minWidth: 0 }}>
+  // ✅ EXPORT JSON
+  const exportToJson = (plugin, data) => {
+    const blob = new Blob(
+      [JSON.stringify(data, null, 2)],
+      { type: "application/json" }
+    );
 
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${plugin}.json`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
+
+  // ✅ EXPORT CSV
+  const exportToCsv = (plugin, data) => {
+    if (!data || data.length === 0) return;
+
+    const headers = Object.keys(data[0]);
+
+    const csvRows = [
+      headers.join(","), // header
+      ...data.map((row) =>
+        headers.map((field) => `"${row[field] ?? ""}"`).join(",")
+      )
+    ];
+
+    const blob = new Blob([csvRows.join("\n")], {
+      type: "text/csv"
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${plugin}.csv`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <Grid container spacing={3} sx={{ minWidth: 0, overflowX: "hidden" }}>
+      
       {/* FORM */}
       <Grid item xs={12}>
         <Paper sx={{ p: 3 }}>
-          <Typography variant="h5">
-            Run Plugins
-          </Typography>
+          <Typography variant="h5">Run Plugins</Typography>
 
           <Grid container spacing={2} sx={{ mt: 1 }}>
-
-            {/* MEMORY FILE */}
             <Grid item xs={6}>
               <TextField
                 fullWidth
                 label="Memory File"
                 value={form.memory_file}
                 onChange={(e) =>
-                  setForm({
-                    ...form,
-                    memory_file: e.target.value
-                  })
+                  setForm({ ...form, memory_file: e.target.value })
                 }
               />
             </Grid>
 
-            {/* PLUGINS */}
             <Grid item xs={6}>
               <FormControl fullWidth>
                 <InputLabel>Plugins</InputLabel>
-
                 <Select
                   multiple
                   value={form.plugins}
                   label="Plugins"
                   onChange={(e) =>
-                    setForm({
-                      ...form,
-                      plugins: e.target.value
-                    })
+                    setForm({ ...form, plugins: e.target.value })
                   }
                   input={<OutlinedInput label="Plugins" />}
                   renderValue={(selected) =>
-                    selected.length > 0
-                      ? selected.join(", ")
-                      : "Plugins"
+                    selected.length > 0 ? selected.join(", ") : "Plugins"
                   }
-                  MenuProps={{
-                    disablePortal: true,
-                    PaperProps: {
-                      sx: {
-                        mt: 1,
-                        maxHeight: 300,
-                        minWidth: 280
-                      }
-                    }
-                  }}
                 >
                   {availablePlugins.map((plugin) => (
-                    <MenuItem
-                      key={plugin.id}
-                      value={plugin.label}
-                    >
-                      <Checkbox
-                        checked={form.plugins.includes(
-                          plugin.label
-                        )}
-                      />
+                    <MenuItem key={plugin.id} value={plugin.label}>
+                      <Checkbox checked={form.plugins.includes(plugin.label)} />
                       <ListItemText primary={plugin.label} />
                     </MenuItem>
                   ))}
@@ -193,7 +205,6 @@ export default function RunPage() {
               </FormControl>
             </Grid>
 
-            {/* OS */}
             <Grid item xs={6}>
               <FormControl fullWidth>
                 <InputLabel>OS</InputLabel>
@@ -201,62 +212,43 @@ export default function RunPage() {
                   value={form.os}
                   label="OS"
                   onChange={(e) =>
-                    setForm({
-                      ...form,
-                      os: e.target.value,
-                      plugins: []
-                    })
+                    setForm({ ...form, os: e.target.value, plugins: [] })
                   }
                 >
                   {osOptions.map((os) => (
-                    <MenuItem key={os} value={os}>
-                      {os}
-                    </MenuItem>
+                    <MenuItem key={os} value={os}>{os}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
 
-            {/* PID */}
             <Grid item xs={6}>
               <TextField
                 fullWidth
                 label="PID (optional)"
                 value={form.process}
                 onChange={(e) =>
-                  setForm({
-                    ...form,
-                    process: e.target.value
-                  })
+                  setForm({ ...form, process: e.target.value })
                 }
               />
             </Grid>
 
-            {/* ADDRESS */}
             <Grid item xs={6}>
               <TextField
                 fullWidth
                 label="Address (optional)"
                 value={form.address}
                 onChange={(e) =>
-                  setForm({
-                    ...form,
-                    address: e.target.value
-                  })
+                  setForm({ ...form, address: e.target.value })
                 }
               />
             </Grid>
 
-            {/* RUN */}
             <Grid item xs={12}>
-              <Button
-                variant="contained"
-                onClick={handleSubmit}
-              >
+              <Button variant="contained" onClick={handleSubmit}>
                 Run
               </Button>
             </Grid>
-
           </Grid>
 
           {jobId && (
@@ -275,25 +267,52 @@ export default function RunPage() {
           return (
             <Grid item xs={12} key={plugin}>
               <Paper sx={{ p: 2 }}>
-                <Typography variant="h6">
-                  {plugin}
-                </Typography>
+                
+                {/* HEADER */}
+                <Box
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{ mb: 2 }}
+                >
+                  <Typography variant="h6">{plugin}</Typography>
 
-                <div style={{ height: 420, width: "100%" }}>
+                  {/* BUTTONS */}
+                  <Box display="flex" gap={1}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => exportToJson(plugin, data)}
+                    >
+                      JSON
+                    </Button>
+
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => exportToCsv(plugin, data)}
+                    >
+                      CSV
+                    </Button>
+                  </Box>
+                </Box>
+
+                {/* TABLE */}
+                <div style={{ height: 420, width: "100%", overflowX: "auto" }}>
                   <DataGrid
                     rows={rows}
                     columns={columns}
                     pageSizeOptions={[5, 10, 25]}
                     initialState={{
                       pagination: {
-                        paginationModel: {
-                          pageSize: 10
-                        }
+                        paginationModel: { pageSize: 10 }
                       }
                     }}
-                    sx={{ border: 0 }}
+                    sx={{ border: 0, minWidth: 0 }}
+                    disableRowSelectionOnClick
                   />
                 </div>
+
               </Paper>
             </Grid>
           );
