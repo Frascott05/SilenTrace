@@ -186,3 +186,45 @@ Starts the parsing for the timeline on a memory dump (windows only for now).
 ```bash
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
+
+
+# SilenTrace-2.0-frontend
+This is an example of a frontend for the SilenTrace 2.0-backend
+
+# Frontend Documentation
+
+## Prerequisites
+
+Before starting, make sure you have installed:
+
+- Node.js (>= 18)
+- npm (comes with Node.js)
+- Python 3.10+ (only if backend dependencies are required)
+
+---
+
+## Installation
+
+### 1. Install Node.js
+
+Inside the frontend project folder:
+
+```bash
+npm install
+```
+
+### 2. Install Node.js dependencies
+
+Also inside the frontend project folder:
+
+```bash
+npm install $(cat requirements.txt)
+```
+
+### 3. Start the project
+
+Still inside the frontend project folder launch:
+
+```bash
+npm run dev -- --host
+```
