@@ -1,5 +1,7 @@
-![DocumentationLogo.jpeg]
+
 # SilenTrace 2.0
+![SilentTrace Logo](DocumentationLogo.jpeg)
+
 
 API for Volatility plugin execution on a memory dump , async job management and results recovery.
 Backend API are made in python, using FastAPI, meanwhile the frontend (that can be changed with your own personal frontend)
