@@ -19,21 +19,24 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div
-      style={{
-        width: collapsed ? "70px" : "220px",
-        minWidth: collapsed ? "70px" : "220px",
-        maxWidth: collapsed ? "70px" : "220px",
-        height: "100vh",
-        padding: "20px 10px",
-        borderRight: "1px solid #ddd",
-        display: "flex",
-        flexDirection: "column",
-        transition: "all 0.2s ease",
-        flexShrink: 0,
-        boxSizing: "border-box",
-      }}
-    >
+      <div
+        style={{
+          width: collapsed ? "70px" : "220px",
+          minWidth: collapsed ? "70px" : "220px",
+          maxWidth: collapsed ? "70px" : "220px",
+          height: "100vh",
+          padding: "20px 10px",
+          borderRight: "1px solid #ddd",
+          display: "flex",
+          flexDirection: "column",
+          transition: "all 0.2s ease",
+          flexShrink: 0,
+          boxSizing: "border-box",
+
+          position: "sticky",
+          top: 0,
+        }}
+      >
       {/* HEADER */}
       <div
         style={{

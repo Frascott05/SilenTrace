@@ -106,6 +106,14 @@ class VolatilityPluginList:
                     "description": (plugin.__doc__ or "").strip() if plugin.__doc__ else None,
                 })
 
+        if os_name == "windows":
+    
+            result.append({
+                "name": "windows.registry.shutdown.Shutdown",
+                "module": "volatility3.windows.shutdown.Shutdown",
+                "description": "Shutdown registry log"
+            })
+
         return result
 
     # -----------------------------
