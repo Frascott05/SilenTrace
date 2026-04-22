@@ -141,6 +141,16 @@ services:
     tty: true
 ```
 
+then run the followin commands:
+```bash
+docker compose build --no-cache
+```
+
+```bash
+docker compose up
+```
+
+# Project Documentation for and own-made frontend (or to use the backend with AI agents)
 ---
 
 ## 📌 Overview of the backend API
