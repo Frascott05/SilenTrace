@@ -8,6 +8,140 @@ Backend API are made in python, using FastAPI, meanwhile the frontend (that can 
 was created with REACT.
 
 ---
+# Starting the project:
+
+## Necessary:
+
+Install all the requirements for python with the following command:
+```bash
+pip install -r requirements.txt
+```
+And the dependencies for React (see below).
+
+Before starting the project is essential to create a folder named `dumps`
+(or whatever name you like), that will contain all the dumps that you want to analyze.
+
+In addition to that, you have to create the `.env` file, that has to be something like this:
+
+```bash
+APP_NAME=SilentraceGUI
+
+VOLATILITY_PATH=/complete/path/to/volatility/vol.py
+DUMPS_PATH=/complete/path/to/dumps/folder
+
+ALLOWED_ORIGINS=*
+PORT_BACKEND=9000 #do not change that unless you kwnow ho to deal with react
+```
+
+## Starting with one command (LINUX only):
+
+```bash
+./start.sh
+```
+if it doesn't start cause it doesn't have permission, run this command:
+
+```bash
+chmod +x start.sh
+```
+and now re-run again the first command.
+
+## Starting the project on another OS (Docker required):
+
+⚠️ You don't have to clone the git repository of the project, you just have to create a folder with the `.env` file, the `dumps` folder
+and the following `dockerfile` and `docker-compose.yml`.
+
+###dockerfile
+```dockerfile
+FROM python:3.11-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    gcc \
+    make \
+    python3-dev \
+    libffi-dev \
+    libssl-dev \
+    rustc \
+    cargo \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip setuptools wheel
+
+# ----------------------------
+# VOLATILITY3 in /opt
+# ----------------------------
+RUN git clone https://github.com/Frascott05/volatility3 /opt/volatility3
+
+#ENV PYTHONPATH="/opt/volatility3"
+
+# ----------------------------
+# PROGETTO SILENTRACE in /home/app
+# ----------------------------
+WORKDIR /home/app
+
+RUN git clone -b SilenTrace-2.0 https://github.com/Frascott05/SilenTrace.git
+
+WORKDIR /home/app/SilenTrace
+
+# ----------------------------
+# BACKEND dependencies
+# ----------------------------
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ----------------------------
+# FRONTEND dependencies
+# ----------------------------
+#RUN cd frontend && npm install
+
+# ----------------------------
+# start script permissions
+# ----------------------------
+RUN chmod +x /home/app/SilenTrace/start.sh
+
+# Porta React
+EXPOSE 5173
+
+# Porta FastAPI
+EXPOSE 9000
+
+# Avvio
+CMD ["/home/app/SilenTrace/start.sh"]
+
+```
+### docker-compose.yml
+```docker-compose.yml
+version: "3.9"
+
+services:
+  silentrace:
+    build: .
+
+    container_name: silentrace
+
+    ports:
+      - "5173:5173"
+      - "9000:9000"
+
+    volumes:
+      # dati persistenti
+      - ./dumps:/home/app/SilenTrace/dumps
+
+      # env esterno
+      - ./.env:/home/app/SilenTrace/.env
+
+    working_dir: /home/app/SilenTrace
+
+    stdin_open: true
+    tty: true
+```
+
+---
 
 ## 📌 Overview of the backend API
 
@@ -217,130 +351,5 @@ npm install
 This will install all the necessaries dependencies for the project
 
 
-
-# Starting the project:
-
-## Necessary:
-Before starting the project is essential to create a folder named `dumps`
-(or whatever name you like), that will contain all the dumps that you want to analyze.
-
-In addition to that, you have to create the `.env` file, that has to be something like this:
-
-```bash
-APP_NAME=SilentraceGUI
-
-VOLATILITY_PATH=/complete/path/to/volatility/vol.py
-DUMPS_PATH=/complete/path/to/dumps/folder
-
-ALLOWED_ORIGINS=*
-PORT_BACKEND=9000 #do not change that unless you kwnow ho to deal with react
-```
-
-## Starting with one command (LINUX only):
-
-```bash
-./start.sh
-```
-if it doesn't start cause it doesn't have permission, run this command:
-
-```bash
-chmod +x start.sh
-```
-and now re-run again the first command.
-
-## Starting the project on another OS (Docker required):
-
-⚠️ You don't have to clone the git repository of the project, you just have to create a folder with the `.env` file, the `dumps` folder
-and the following `dockerfile` and `docker-compose.yml`.
-
-```dockerfile
-FROM python:3.11-slim
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    build-essential \
-    gcc \
-    make \
-    python3-dev \
-    libffi-dev \
-    libssl-dev \
-    rustc \
-    cargo \
-    nodejs \
-    npm \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN pip install --upgrade pip setuptools wheel
-
-# ----------------------------
-# VOLATILITY3 in /opt
-# ----------------------------
-RUN git clone https://github.com/Frascott05/volatility3 /opt/volatility3
-
-#ENV PYTHONPATH="/opt/volatility3"
-
-# ----------------------------
-# PROGETTO SILENTRACE in /home/app
-# ----------------------------
-WORKDIR /home/app
-
-RUN git clone -b SilenTrace-2.0 https://github.com/Frascott05/SilenTrace.git
-
-WORKDIR /home/app/SilenTrace
-
-# ----------------------------
-# BACKEND dependencies
-# ----------------------------
-RUN pip install --no-cache-dir -r requirements.txt
-
-# ----------------------------
-# FRONTEND dependencies
-# ----------------------------
-#RUN cd frontend && npm install
-
-# ----------------------------
-# start script permissions
-# ----------------------------
-RUN chmod +x /home/app/SilenTrace/start.sh
-
-# Porta React
-EXPOSE 5173
-
-# Porta FastAPI
-EXPOSE 9000
-
-# Avvio
-CMD ["/home/app/SilenTrace/start.sh"]
-
-```
-
-```docker-compose.yml
-version: "3.9"
-
-services:
-  silentrace:
-    build: .
-
-    container_name: silentrace
-
-    ports:
-      - "5173:5173"
-      - "9000:9000"
-
-    volumes:
-      # dati persistenti
-      - ./dumps:/home/app/SilenTrace/dumps
-
-      # env esterno
-      - ./.env:/home/app/SilenTrace/.env
-
-    working_dir: /home/app/SilenTrace
-
-    stdin_open: true
-    tty: true
-```
 
 
