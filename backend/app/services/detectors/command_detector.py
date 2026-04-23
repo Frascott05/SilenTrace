@@ -1,6 +1,6 @@
-from detectors.base_detector import BaseDetector
-from core.event_builder import EventBuilder
-from utils.constants import SUSPICIOUS_CMD_PATTERNS
+from app.services.detectors.base_detector import BaseDetector
+from app.services.core.event_builder import EventBuilder
+from app.services.utils.constants import SUSPICIOUS_CMD_PATTERNS
 
 
 class CommandDetector(BaseDetector):

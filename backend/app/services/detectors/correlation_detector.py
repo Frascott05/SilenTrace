@@ -1,4 +1,4 @@
-from detectors.base_detector import BaseDetector
+from app.services.detectors.base_detector import BaseDetector
 
 
 class CorrelationDetector(BaseDetector):

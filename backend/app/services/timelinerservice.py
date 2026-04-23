@@ -1,12 +1,12 @@
-from core.process_builder import ProcessBuilder
-from core.timeline_builder import TimelineBuilder
-from detectors.process_detector import ProcessDetector
-from detectors.network_detector import NetworkDetector
-from detectors.command_detector import CommandDetector
-from detectors.registry_detector import RegistryDetector
-from detectors.malware_detector import MalwareDetector
-from detectors.correlation_detector import CorrelationDetector
-from scoring.scorer import Scorer
+from app.services.core.process_builder import ProcessBuilder
+from app.services.core.timeline_builder import TimelineBuilder
+from app.services.detectors.process_detector import ProcessDetector
+from app.services.detectors.network_detector import NetworkDetector
+from app.services.detectors.command_detector import CommandDetector
+from app.services.detectors.registry_detector import RegistryDetector
+from app.services.detectors.malware_detector import MalwareDetector
+from app.services.detectors.correlation_detector import CorrelationDetector
+from app.services.scoring.scorer import Scorer
 
 
 class TimelineAnalysisService:

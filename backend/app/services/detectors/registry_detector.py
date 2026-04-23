@@ -1,5 +1,5 @@
-from detectors.base_detector import BaseDetector
-from core.event_builder import EventBuilder
+from app.services.detectors.base_detector import BaseDetector
+from app.services.core.event_builder import EventBuilder
 
 
 class RegistryDetector(BaseDetector):
