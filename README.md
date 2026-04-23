@@ -1,333 +1,365 @@
-# SilentTrace
+
+# SilenTrace 2.0
 ![SilentTrace Logo](DocumentationLogo.jpeg)
 
-SilentTrace is a **Flask-based memory forensics web application** designed to analyze memory dumps using **Volatility 3**.  
-It provides a simple UI to manage investigations and execute analysis plugins on uploaded memory dumps.
+
+API for Volatility plugin execution on a memory dump , async job management and results recovery.
+Backend API are made in python, using FastAPI, meanwhile the frontend (that can be changed with your own personal frontend)
+was created with REACT.
+
+---
+# Starting the project:
+
+## Necessary:
+
+Install all the requirements for python with the following command:
+```bash
+pip install -r requirements.txt
+```
+And the dependencies for React (see below).
+
+Before starting the project is essential to create a folder named `dumps`
+(or whatever name you like), that will contain all the dumps that you want to analyze.
+
+In addition to that, you have to create the `.env` file, that has to be something like this:
+
+```bash
+APP_NAME=SilentraceGUI
+
+VOLATILITY_PATH=/complete/path/to/volatility/vol.py
+DUMPS_PATH=/complete/path/to/dumps/folder
+
+ALLOWED_ORIGINS=*
+PORT_BACKEND=9000 #do not change that unless you kwnow ho to deal with react
+```
+
+## Starting with one command (LINUX only):
+
+```bash
+./start.sh
+```
+if it doesn't start cause it doesn't have permission, run this command:
+
+```bash
+chmod +x start.sh
+```
+and now re-run again the first command.
+
+## Starting the project on another OS (Docker required):
+
+⚠️ You don't have to clone the git repository of the project, you just have to create a folder with the `.env` file, the `dumps` folder
+and the following `dockerfile` and `docker-compose.yml`.
+
+###dockerfile
+```dockerfile
+FROM python:3.11-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    gcc \
+    make \
+    python3-dev \
+    libffi-dev \
+    libssl-dev \
+    rustc \
+    cargo \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip setuptools wheel
+
+# ----------------------------
+# VOLATILITY3 in /opt
+# ----------------------------
+RUN git clone https://github.com/Frascott05/volatility3 /opt/volatility3
+
+#ENV PYTHONPATH="/opt/volatility3"
+
+# ----------------------------
+# PROGETTO SILENTRACE in /home/app
+# ----------------------------
+WORKDIR /home/app
+
+RUN git clone -b SilenTrace-2.0 https://github.com/Frascott05/SilenTrace.git
+
+WORKDIR /home/app/SilenTrace
+
+# ----------------------------
+# BACKEND dependencies
+# ----------------------------
+RUN pip install --no-cache-dir -r requirements.txt
+
+# ----------------------------
+# FRONTEND dependencies
+# ----------------------------
+#RUN cd frontend && npm install
+
+# ----------------------------
+# start script permissions
+# ----------------------------
+RUN chmod +x /home/app/SilenTrace/start.sh
+
+# Porta React
+EXPOSE 5173
+
+# Porta FastAPI
+EXPOSE 9000
+
+# Avvio
+CMD ["/home/app/SilenTrace/start.sh"]
+
+```
+### docker-compose.yml
+```docker-compose.yml
+version: "3.9"
+
+services:
+  silentrace:
+    build: .
+
+    container_name: silentrace
+
+    ports:
+      - "5173:5173"
+      - "9000:9000"
+
+    volumes:
+      # dati persistenti
+      - ./dumps:/home/app/SilenTrace/dumps
+
+      # env esterno
+      - ./.env:/home/app/SilenTrace/.env
+
+    working_dir: /home/app/SilenTrace
+
+    stdin_open: true
+    tty: true
+```
+
+then run the followin commands:
+```bash
+docker compose build --no-cache
+```
+
+```bash
+docker compose up
+```
+
+# Project Documentation for and own-made frontend (or to use the backend with AI agents)
+---
+
+## 📌 Overview of the backend API
+
+Those API allows to:
+
+- Start an analysis on a specified dump file
+- Monitoring the status of the asyncronous jobs
+- Retrieving the results of the analysis
+- Getting the specified OS avaible plugins
+- Starting a parsing pipeline for a timeline
 
 ---
 
-## ⚠️ Security Notice
+## 🧠 Job States
 
-> 🚫 **DO NOT deploy this application on the public internet**
+The possible states are:
 
-This project is designed **only for local usage**:
-
-- Personal machine
-- Local lab environment
-- Internal server (LAN)
-
-Even though JWT authentication is implemented, this release:
-
-- Is **not hardened for production**
-- Does **not include advanced security protections**
-- May expose sensitive forensic data
-
-👉 Use it only in **controlled environments**
+- `running`
+- `done`
 
 ---
 
-## 📁 Project Structure
+## 🧾 Models
 
-- `app/` → Flask application
-- `dumps/` → Memory dumps folder (mounted inside container)
-- `Volatility*Runner.py` → Core logic for running Volatility
-- `docker-compose.yml` → Container orchestration
-- `Dockerfile` → Container build instructions
-- `.env` → Environment configuration
-
----
-
-## ⚙️ Configuration (.env)
-
-### 🔐 Important Settings
-
-#### 1. SECRET_KEY (CRITICAL)
-
-```env
-SECRET_KEY="your-secret-key"
-```
-
-- Used for JWT authentication
-- **MUST be changed before usage**
-- Never expose it publicly
-
----
-
-#### 2. JWT Expiration
-
-```env
-JWT_EXPIRATION_HOURS=24
-```
-
-Controls how long tokens remain valid.
-
----
-
-#### 3. Volatility Path
-
-```env
-VOLATILITY_PATH="/opt/volatility3/vol.py"
-```
-
-- Path to Volatility inside the container
-- Change it only if you modify the Dockerfile
-- We strongly reccomend to not change this or else you'll have to change also part of the code
-
----
-
-#### 4. Dumps Path (VERY IMPORTANT)
-
-```env
-PATH_TO_MOUT="dumps"
-```
-
-This defines the folder mounted inside the container
-
-👉 You can:
-
-- Use a local folder (`dumps`)
-- Use an external drive:
-    
-```env
-PATH_TO_MOUT="/media/external_drive/memory_dumps"
-```
-    
-This allows:
-
-- Persistent storage
-- Large dump handling
-- External forensic datasets
-
----
-
-#### 5. Port Configuration
-
-```docker
-PORT=5000
-```
-
-You can change it freely:
-
-```docker
-PORT=8080
-```
-
----
-
-#### 6. Debug Mode
-
-`DEBUG=True`
-
-```Set to `False` in more stable environments```
-
----
-
-## 🧩 Customizing Volatility Plugins
-
-Plugins are defined in:
-
-```
-app/services/enums/VolatilityPlugins.py
-```
-
-### Default Example:
+### RunRequest
 
 ```python
-class VolatilityPlugins(Enum):  
-    PSTREE = "pstree"  
-    NETSCAN = "netscan"  
-    HASHDUMP = "hashdump"  
-    PSXVIEW = "psxview"
-
+class RunRequest(BaseModel):
+    memory_file: str
+    plugins: List[str]
+    os: Optional[str] = "windows"
+    address: Optional[str] = None
+    dump: Optional[bool] = False
+    process: Optional[int] = None
 ```
 
 ---
 
-### ➕ Adding a New Plugin
-
-Example: adding a shutdown registry plugin
-```python
-class VolatilityPlugins(Enum):  
-    PSTREE = "pstree"  #DO NOT REMOVE
-    NETSCAN = "netscan"  
-    HASHDUMP = "hashdump"  
-    PSXVIEW = "psxview"  
-    SHUTDOWN = "registry.shutdown"
-
-```
-
-NOTE: the more plugins you add, more is the time to wait before the complete execution of them all. We strongly suggest you to only set the plugins that you need and remove the others (exept for pstree).
-
----
-
-### 📌 Notes
-
-- The value must match the Volatility plugin name
-- Format:
-    - With OS: `windows.pslist`
-    - Without OS: `pslist`
-
-The system automatically builds commands like:
-
-python3 vol.py -f dump windows.pstree
-
----
-
-## 💻 Customizing Default Operating System
-
-Defined in:
-
-```
-app/services/enums/OperativeSystem.py
-```
-
-### Default:
-```python
-class OperativeSystems(Enum):  
-    WINDOWS = "windows"  
-    MAC_OS = "mac"  
-    LINUX = "linux"  
-    DEFAULT = WINDOWS
-```
-
----
-
-### 🔧 Changing Default OS
-
-Example: set Linux as default
+### ListRequest
 
 ```python
-DEFAULT = LINUX
+class ListRequest(BaseModel):
+    os: Optional[str] = "windows"
 ```
 
 ---
 
-## 🐳 Docker Usage
+### TimelineRequest
 
-### 🔨 Build the Image
-```bash
-docker compose build
-```
-
----
-
-### 🚀 Run the Application
-
-```bash
-docker compose run --service-ports silentrace
-```
-This will:
-
-- Start the Flask server
-- Expose the configured port
-
----
-
-### 🌐 Access the App
-
-Open your browser:
-
-http://localhost:5000
-
-(or your configured port)
-
----
-### 📂 Managing Dumps (Updated)
-
-You can:
-#### 1. Place dumps before startup
-
-dumps/  
- ├── memory1.vmem  
- ├── memory2.raw
-
----
-
-#### 2. Add dumps in real time (Recommended ✅)
-
-Since the folder is mounted as a Docker volume:
-
-```bash
-/${PATH_TO_MOUT}:/app/app/static/uploads
-```
-
-👉 You can **add dumps while the container is running** by simply:
-
-- Dragging files into the configured folder (e.g. `dumps/`)
-- Copying files into that directory
-
-✔ No container restart required  
-✔ Files are immediately available inside the application
-
----
-#### 3. Alternative (manual copy)
-
-```bash
-docker cp file.vmem silentrace:/app/app/static/uploads/
-```
-
-
----
-
-## Admin Panel Documentation
-
-### Overview
-
-This admin panel allows executing raw SQL queries directly against the application database. It is implemented as a Flask blueprint:
-
-- **Route:** `/api/admin`
-- **Access:** Protected by JWT authentication.
-
-### Important Note
-
-By default, the access control code is **commented out**, so **every registered user can access the admin panel**. This is intentional for first-time setup.
-
----
-
-### Initial Setup Steps
-
-1. **Create the first user** through the standard registration process.
-2. **Access the admin panel:**
-    
-```bash
-    http://<IP>:<PORT>/api/admin
-```
-    
-3. **Promote the first user to admin:**  
-    Execute a SQL query to update the user record, for example:
-    
-```SQL
-    UPDATE users SET is_admin = TRUE WHERE email = 'first_user@example.com';
-```
-    
-4. **Enable admin-only access:**
-    
-    - Open the file `admin.py`.
-    - Uncomment the following lines to restrict access:
-    
 ```python
-    if not user or not user.is_admin:  
-        flash("Access denied: only admins can access this panel", "danger")  
-        return redirect(url_for("Login.html"))
+class TimelineRequest(BaseModel):
+    memory_file: str
+    os: Optional[str] = "windows"
 ```
-    
-5. **Restart the application container** to apply the changes.
 
 ---
 
-## 🧪 Development Mode
+## 🚀 Endpoints
 
-You can modify:
+---
 
-\#CMD ["flask", "run"]  
-CMD ["/bin/bash"]
+### POST /run
 
-Then:
+Starting the execution of Volatility plugin on a memory dump.
 
-docker compose run --service-ports silentrace
+**Request body:**
 
-And manually start:
+```json
+{
+  "memory_file": "/path/to/memory.dmp",
+  "plugins": ["pslist", "netscan"],
+  "os": "windows",
+  "address": null,
+  "dump": false,
+  "process": null
+}
+```
+
+**Response:**
+
+```json
+{
+  "job_id": "abc123"
+}
+```
+
+---
+
+### GET /status/{job_id}
+
+Job results state.
+
+**Response:**
+
+```json
+{
+  "job_id": "abc123",
+  "status": "running | done"
+}
+```
+
+---
+
+### GET /results/{job_id}
+
+Getting analysis result.
+
+**Response:**
+
+```json
+{
+  "results": {
+    "pslist": [
+      {
+        "pid": 1234,
+        "name": "explorer.exe"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### POST /plugin-list
+
+Gaining the plugin list avaible for the operative system.
+
+**Request:**
+
+```json
+{
+  "os": "windows"
+}
+```
+
+**Response:**
+
+```json
+{
+  "plugins": ["pslist", "netscan", "malfind"]
+}
+```
+
+---
+
+### POST /timeline
+
+Starts the parsing for the timeline on a memory dump (windows only for now).
+
+**Request:**
+
+```json
+{
+  "memory_file": "/path/to/memory.dmp",
+  "os": "windows"
+}
+```
+
+**Response:**
+
+```json
+{
+  "job_id": "abc123"
+}
+```
+
+---
+
+## 🔄 Workflow
+
+1. `/plugin-list`
+2. `/run` o `/timeline`
+3. `/status/{job_id}`
+4. `/results/{job_id}`
+
+---
+
+## ▶️ Server started
 
 ```bash
-flask run
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
+
+
+# Frontend Documentation
+
+## Prerequisites
+
+Before starting, make sure you have installed:
+
+- Node.js (>= 18)
+- npm (comes with Node.js)
+- Python 3.10+ (only if backend dependencies are required)
+
+---
+
+## Installation
+
+### 1. Install Node.js
+
+Inside the frontend project folder:
+
+```bash
+npm install
+```
+This will install all the necessaries dependencies for the project
+
+
+
+

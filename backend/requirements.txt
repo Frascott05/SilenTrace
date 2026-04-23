@@ -3,3 +3,4 @@ uvicorn
 pydantic
 pydantic-settings
 volatility3
+pycryptodome
