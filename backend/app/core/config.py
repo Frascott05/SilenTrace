@@ -18,7 +18,6 @@ class Settings(BaseSettings):
     VOLATILITY_PATH: str
     DUMPS_PATH: str
 
-    # 👇 STRINGA, NON LISTA
     ALLOWED_ORIGINS: str = "*"
 
     @property
